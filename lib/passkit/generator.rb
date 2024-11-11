@@ -10,6 +10,7 @@ module Passkit
     end
 
     def generate_and_sign
+      @pass.instance.prepare_files
       check_necessary_files
       create_temporary_directory
       copy_pass_to_tmp_location
@@ -97,6 +98,10 @@ module Passkit
       pass[:relevantDate] = @pass.relevant_date if @pass.relevant_date
       pass[:semantics] = @pass.semantics if @pass.semantics
       pass[:userInfo] = @pass.user_info if @pass.user_info
+
+      unless @pass[:sharing_prohibited]
+        pass[:sharing] = @pass.sharing if @pass.sharing
+      end
 
       pass[@pass.pass_type] = {
         headerFields: @pass.header_fields,

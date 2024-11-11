@@ -7,7 +7,7 @@ module Passkit
       # @see Android: https://walletpasses.io/developer/
       class RegistrationsController < ActionController::API
         before_action :load_pass, only: %i[create destroy]
-        before_action :load_device, only: %i[show]
+        before_action :load_device, only: %i[show destroy]
 
         # @return If the serial number is already registered for this device, returns HTTP status 200.
         # @return If registration succeeds, returns HTTP status 201.
@@ -48,8 +48,10 @@ module Passkit
         # @return If the request is not authorized, returns HTTP status 401.
         # @return Otherwise, returns the appropriate standard HTTP status.
         def destroy
-          registrations = @pass.registrations.where(passkit_device_id: params[:device_id])
-          registrations.delete_all
+          render json: {}, status: :ok unless @device
+
+          registrations = @pass.registrations.where(passkit_device_id: @device.id)
+          registrations.destroy_all
           render json: {}, status: :ok
         end
 
