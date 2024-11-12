@@ -59,8 +59,6 @@ you the tables and ActiveRecord models, and also an engine with the necessary AP
 
 Now is your turn. Before proceeding, you need to set these ENV variables:
 * `PASSKIT_WEB_SERVICE_HOST`
-* `PASSKIT_CERTIFICATE_KEY`
-* `PASSKIT_PRIVATE_P12_CERTIFICATE`
 * `PASSKIT_APPLE_INTERMEDIATE_CERTIFICATE`
 * `PASSKIT_APPLE_TEAM_IDENTIFIER`
 * `PASSKIT_PASS_TYPE_IDENTIFIER`
@@ -68,9 +66,24 @@ Now is your turn. Before proceeding, you need to set these ENV variables:
 We have a [specific guide on how to get all these](docs/passkit_environment_variables.md), please follow it.
 You cannot start using this library without these variables set, and we cannot do the work for you.
 
+### Access to certificate data
+
+Use the database or environment variables to access certificate data.
+By default, the certificate and its password will be sourced from the database.
+If you want to use environment variables, set:
+* `PASSKIT_CERTIFICATE_KEY`
+* `PASSKIT_CERTIFICATE_PASSWORD`
+
+and update the configuration as follows:
+```ruby
+Passkit.configure do |config|
+  config.use_database_for_certificates = false
+end
+```
+
 ## Usage
 
-If you followed the installation steps and you have the ENV variables set, we can start looking at what is provided for you.
+If you followed the installation steps, we can start looking at what is provided for you.
 
 ### Dashboard
 
@@ -120,7 +133,7 @@ Again, looking at these examples, is the easiest way to get started.
 
 ### Create your own Wallet Pass
 
-You can create your own Wallet Passes by creating a new class that inherits from `Passkit::BasePass` and 
+You can create your own Wallet Passes by creating a new class that inherits from `Passkit::BasePass` and
 defining the methods that you want to override.
 
 You can define colors, fields and texts. You can also define the logo and the background image.
@@ -152,11 +165,11 @@ Passkit::UrlGenerator.new(Passkit::UserTicket, User.find(1), :tickets)
 and then use `.android` or `.ios` to get the URL to serve the Wallet Pass.
 Again, check the example mailer included in the gem to see how to use it.
 
-## Debug issues 
+## Debug issues
 
 * On Mac, you can open the *.pkpass files with "Pass Viewer". Open the `Console.app` to log possible error messages and filter by "Pass Viewer" process.
 * Check the logs on http://localhost:3000/passkit/dashboard/logs
-* In case of error "The passTypeIdentifier or teamIdentifier provided may not match your certificate, 
+* In case of error "The passTypeIdentifier or teamIdentifier provided may not match your certificate,
 or the certificate trust chain could not be verified." the certificate (p12) might be expired.
 
 

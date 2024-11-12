@@ -128,13 +128,11 @@ module Passkit
       File.write(@manifest_url, manifest.to_json)
     end
 
-    CERTIFICATE = Rails.root.join(ENV["PASSKIT_PRIVATE_P12_CERTIFICATE"])
     INTERMEDIATE_CERTIFICATE = Rails.root.join(ENV["PASSKIT_APPLE_INTERMEDIATE_CERTIFICATE"])
-    CERTIFICATE_PASSWORD = ENV["PASSKIT_CERTIFICATE_KEY"]
 
     # :nocov:
     def sign_manifest
-      p12_certificate = OpenSSL::PKCS12.new(File.read(CERTIFICATE), CERTIFICATE_PASSWORD)
+      p12_certificate = OpenSSL::PKCS12.new(File.read(certificate_source.certificate), certificate_source.password)
       intermediate_certificate = OpenSSL::X509::Certificate.new(File.read(INTERMEDIATE_CERTIFICATE))
 
       flag = OpenSSL::PKCS7::DETACHED | OpenSSL::PKCS7::BINARY
@@ -159,6 +157,10 @@ module Passkit
         end
       end
       zip_path
+    end
+
+    def certificate_source
+      @certificate_source ||= Passkit::CertificateSources::Factory.find_source(@pass.site_id)
     end
   end
 end
