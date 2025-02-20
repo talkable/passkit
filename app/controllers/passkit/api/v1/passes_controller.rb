@@ -9,12 +9,12 @@ module Passkit
 
           if @generator && @payload[:collection_name].present?
             files = @generator.public_send(@payload[:collection_name]).collect do |collection_item|
-              Passkit::Factory.create_pass(@payload[:pass_class], generator: collection_item, site_id: params[:site_id])
+              create_pass(collection_item)
             end
             file = Passkit::Generator.compress_passes_files(files)
             send_file(file, type: 'application/vnd.apple.pkpasses', disposition: 'attachment')
           else
-            file = Passkit::Factory.create_pass(@payload[:pass_class], generator: @generator, site_id: params[:site_id])
+            file = create_pass(@generator)
             send_file(file, type: 'application/vnd.apple.pkpass', disposition: 'attachment')
           end
         end
@@ -35,10 +35,11 @@ module Passkit
             return
           end
 
+          pass_output_path = Passkit::Generator.new(pass).generate_and_sign
+
           response.headers["last-modified"] = pass.last_update.httpdate
           if request.headers["If-Modified-Since"].nil? ||
               (pass.last_update.to_i > Time.zone.parse(request.headers["If-Modified-Since"]).to_i)
-            pass_output_path = Passkit::Generator.new(pass).generate_and_sign
             send_file(pass_output_path, type: "application/vnd.apple.pkpass", disposition: "attachment")
           else
             head :not_modified
@@ -61,6 +62,18 @@ module Passkit
 
           generator_class = @payload[:generator_class].constantize
           @generator = generator_class.find(@payload[:generator_id])
+        end
+
+        def create_pass(generator)
+          Passkit::Factory.create_pass(
+            @payload[:pass_class],
+            generator: generator,
+            pass_attributes: pass_attributes
+          )
+        end
+
+        def pass_attributes
+          {}
         end
       end
     end

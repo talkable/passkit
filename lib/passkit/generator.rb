@@ -10,7 +10,6 @@ module Passkit
     end
 
     def generate_and_sign
-      @pass.instance.prepare_files
       check_necessary_files
       create_temporary_directory
       copy_pass_to_tmp_location
@@ -99,10 +98,6 @@ module Passkit
       pass[:semantics] = @pass.semantics if @pass.semantics
       pass[:userInfo] = @pass.user_info if @pass.user_info
 
-      unless @pass[:sharing_prohibited]
-        pass[:sharing] = @pass.sharing if @pass.sharing
-      end
-
       pass[@pass.pass_type] = {
         headerFields: @pass.header_fields,
         primaryFields: @pass.primary_fields,
@@ -132,7 +127,7 @@ module Passkit
 
     # :nocov:
     def sign_manifest
-      p12_certificate = OpenSSL::PKCS12.new(File.read(certificate_source.certificate), certificate_source.password)
+      p12_certificate = Passkit::CertificateSource.new(@pass).call
       intermediate_certificate = OpenSSL::X509::Certificate.new(File.read(INTERMEDIATE_CERTIFICATE))
 
       flag = OpenSSL::PKCS7::DETACHED | OpenSSL::PKCS7::BINARY
@@ -157,10 +152,6 @@ module Passkit
         end
       end
       zip_path
-    end
-
-    def certificate_source
-      @certificate_source ||= Passkit::CertificateSources::Factory.find_source(@pass.site_id)
     end
   end
 end
