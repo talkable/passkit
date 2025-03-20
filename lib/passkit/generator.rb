@@ -9,7 +9,7 @@ module Passkit
       @generator = pass.generator
     end
 
-    def generate_and_sign
+    def generate_and_sign(certificate_id = nil)
       check_necessary_files
       create_temporary_directory
       copy_pass_to_tmp_location
@@ -19,7 +19,8 @@ module Passkit
         generate_json_pass
       end
       generate_json_manifest
-      sign_manifest
+      certificate = p12_certificate(certificate_id)
+      sign_manifest(certificate)
       compress_pass_file
     end
 
@@ -37,6 +38,10 @@ module Passkit
     end
 
   private
+  
+    def p12_certificate(certificate_id)
+      Passkit::Certificates::Source.new(certificate_id).source 
+    end
 
     def check_necessary_files
       raise "icon.png is not present in #{@pass.pass_path}" unless File.exist?(File.join(@pass.pass_path, "icon.png"))
@@ -126,8 +131,7 @@ module Passkit
     INTERMEDIATE_CERTIFICATE = Rails.root.join(ENV["PASSKIT_APPLE_INTERMEDIATE_CERTIFICATE"])
 
     # :nocov:
-    def sign_manifest
-      p12_certificate = Passkit::CertificateSource.new(@pass).call
+    def sign_manifest(p12_certificate)
       intermediate_certificate = OpenSSL::X509::Certificate.new(File.read(INTERMEDIATE_CERTIFICATE))
 
       flag = OpenSSL::PKCS7::DETACHED | OpenSSL::PKCS7::BINARY

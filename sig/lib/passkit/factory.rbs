@@ -1,5 +1,5 @@
 module Passkit
   class Factory
-    def self.create_pass: (String pass_class, Passkit::GeneratorObject ?generator, Hash[untyped, untyped] ?pass_attributes) -> String
+    def self.create_pass: (String pass_class, Passkit::GeneratorObject ?generator, Hash[untyped, untyped] ?pass_attributes, String ?certificate_id ) -> String
   end
 end

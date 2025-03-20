@@ -65,11 +65,7 @@ module Passkit
         end
 
         def create_pass(generator)
-          Passkit::Factory.create_pass(
-            @payload[:pass_class],
-            generator: generator,
-            pass_attributes: pass_attributes
-          )
+          Passkit::Factory.create_pass(@payload[:pass_class], generator, pass_attributes, params[:certificate_id])
         end
 
         def pass_attributes
