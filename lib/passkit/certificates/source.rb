@@ -8,8 +8,8 @@ module Passkit
       end
 
       def source
-        cert_data = if certificate_id
-          Passkit::Certificate.find(certificate_id)
+        cert_data = if @certificate_id
+          Passkit::Certificate.find(@certificate_id)
         else
           Passkit::Certificates::NullCertificate.new
         end
