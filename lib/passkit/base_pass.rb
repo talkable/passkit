@@ -12,10 +12,6 @@ module Passkit
       ENV["PASSKIT_APPLE_TEAM_IDENTIFIER"] || raise(Error.new("Missing environment variable: PASSKIT_APPLE_TEAM_IDENTIFIER"))
     end
 
-    def pass_type_identifier
-      ENV["PASSKIT_PASS_TYPE_IDENTIFIER"] || raise(Error.new("Missing environment variable: PASSKIT_PASS_TYPE_IDENTIFIER"))
-    end
-
     def language
       nil
     end

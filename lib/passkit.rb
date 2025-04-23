@@ -47,7 +47,7 @@ module Passkit
       @private_p12_certificate = ENV["PASSKIT_PRIVATE_P12_CERTIFICATE"]
       @apple_intermediate_certificate = ENV["PASSKIT_APPLE_INTERMEDIATE_CERTIFICATE"] || (raise "Please set PASSKIT_APPLE_INTERMEDIATE_CERTIFICATE")
       @apple_team_identifier = ENV["PASSKIT_APPLE_TEAM_IDENTIFIER"] || (raise "Please set PASSKIT_APPLE_TEAM_IDENTIFIER")
-      @pass_type_identifier = ENV["PASSKIT_PASS_TYPE_IDENTIFIER"] || (raise "Please set PASSKIT_PASS_TYPE_IDENTIFIER")
+      @pass_type_identifier = ENV["PASSKIT_PASS_TYPE_IDENTIFIER"]
     end
   end
 end

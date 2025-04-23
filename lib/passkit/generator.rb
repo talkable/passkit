@@ -16,12 +16,12 @@ module Passkit
       copy_pass_to_tmp_location
       @pass.instance.add_other_files(@temporary_path)
       clean_ds_store_files
+      certificate = p12_certificate(certificate_id)
       I18n.with_locale(@pass.language) do
-        generate_json_pass
+        generate_json_pass(certificate.identifier)
       end
       generate_json_manifest
-      certificate = p12_certificate(certificate_id)
-      sign_manifest(certificate)
+      sign_manifest(certificate.source)
       compress_pass_file
     end
 
@@ -39,9 +39,9 @@ module Passkit
     end
 
   private
-  
+
     def p12_certificate(certificate_id)
-      Passkit::Certificates::Source.new(certificate_id).source 
+      Passkit::Certificates::Source.new(certificate_id)
     end
 
     def check_necessary_files
@@ -63,7 +63,7 @@ module Passkit
       Dir.glob(@temporary_path.join("**/.DS_Store")).each { |file| File.delete(file) }
     end
 
-    def generate_json_pass
+    def generate_json_pass(pass_type_identifier)
       pass = {
         formatVersion: @pass.format_version,
         teamIdentifier: @pass.apple_team_identifier,
@@ -75,7 +75,7 @@ module Passkit
         locations: @pass.locations,
         logoText: @pass.logo_text,
         organizationName: @pass.organization_name,
-        passTypeIdentifier: @pass.pass_type_identifier,
+        passTypeIdentifier: pass_type_identifier,
         serialNumber: @pass.serial_number,
         sharingProhibited: @pass.sharing_prohibited,
         suppressStripShine: @pass.suppress_strip_shine,
