@@ -2,7 +2,8 @@ module Passkit
   module Certificates
     class NullCertificate
       def certificate
-        ENV.fetch("PASSKIT_PRIVATE_P12_CERTIFICATE") { raise "Please set PASSKIT_PRIVATE_P12_CERTIFICATE" }
+        p12_path = ENV.fetch("PASSKIT_PRIVATE_P12_CERTIFICATE") { raise "Please set PASSKIT_PRIVATE_P12_CERTIFICATE" }
+        Base64.strict_encode64(File.binread(p12_path))
       end
 
       def secret
