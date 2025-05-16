@@ -24,17 +24,24 @@ module Passkit
         # @return Otherwise, returns the appropriate standard HTTP status.
         def show
           authentication_token = request.headers["Authorization"]&.split(" ")&.last
+          Rails.logger.debug("[Apple Wallet DEBUG] authentication_token: #{authentication_token}")
           unless authentication_token.present?
             render json: {}, status: :unauthorized
             return
           end
 
           pass = Pass.find_by(serial_number: params[:serial_number], authentication_token: authentication_token)
+          Rails.logger.debug("[Apple Wallet DEBUG] pass: #{pass}")
           unless pass
             render json: {}, status: :unauthorized
             return
           end
 
+          pass_output_path = Passkit::Generator.new(pass).generate_and_sign
+          Rails.logger.debug("Request headers: #{request.headers}")
+          Rails.logger.debug("Request url: #{request.url}")
+          Rails.logger.debug("Request params: #{request.params}")
+          Rails.logger.debug("[Apple Wallet DEBUG] pass_output_path: #{pass_output_path}")
           response.headers["last-modified"] = pass.last_update.httpdate
           if request.headers["If-Modified-Since"].nil? ||
               (pass.last_update.to_i > Time.zone.parse(request.headers["If-Modified-Since"]).to_i)
