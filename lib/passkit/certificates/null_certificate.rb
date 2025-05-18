@@ -11,7 +11,7 @@ module Passkit
       end
 
       def identifier
-        ENV["PASSKIT_PASS_TYPE_IDENTIFIER"] { raise "Please set PASSKIT_PASS_TYPE_IDENTIFIER" }
+        ENV.fetch("PASSKIT_PASS_TYPE_IDENTIFIER") { raise "Please set PASSKIT_PASS_TYPE_IDENTIFIER" }
       end
     end
   end
