@@ -9,17 +9,19 @@ module Passkit
       @generator = pass.generator
     end
 
-    def generate_and_sign
+    def generate_and_sign(certificate_id = nil)
+      @pass.instance.prepare_files
       check_necessary_files
       create_temporary_directory
       copy_pass_to_tmp_location
       @pass.instance.add_other_files(@temporary_path)
       clean_ds_store_files
+      certificate = p12_certificate(certificate_id)
       I18n.with_locale(@pass.language) do
-        generate_json_pass
+        generate_json_pass(certificate.identifier)
       end
       generate_json_manifest
-      sign_manifest
+      sign_manifest(certificate.source)
       compress_pass_file
     end
 
@@ -37,6 +39,10 @@ module Passkit
     end
 
   private
+
+    def p12_certificate(certificate_id)
+      Passkit::Certificates::Source.new(certificate_id)
+    end
 
     def check_necessary_files
       raise "icon.png is not present in #{@pass.pass_path}" unless File.exist?(File.join(@pass.pass_path, "icon.png"))
@@ -57,7 +63,7 @@ module Passkit
       Dir.glob(@temporary_path.join("**/.DS_Store")).each { |file| File.delete(file) }
     end
 
-    def generate_json_pass
+    def generate_json_pass(pass_type_identifier)
       pass = {
         formatVersion: @pass.format_version,
         teamIdentifier: @pass.apple_team_identifier,
@@ -69,7 +75,7 @@ module Passkit
         locations: @pass.locations,
         logoText: @pass.logo_text,
         organizationName: @pass.organization_name,
-        passTypeIdentifier: @pass.pass_type_identifier,
+        passTypeIdentifier: pass_type_identifier,
         serialNumber: @pass.serial_number,
         sharingProhibited: @pass.sharing_prohibited,
         suppressStripShine: @pass.suppress_strip_shine,
@@ -97,6 +103,7 @@ module Passkit
       pass[:relevantDate] = @pass.relevant_date if @pass.relevant_date
       pass[:semantics] = @pass.semantics if @pass.semantics
       pass[:userInfo] = @pass.user_info if @pass.user_info
+      pass[:sharing] = @pass.sharing if @pass.sharing && !@pass[:sharing_prohibited]
 
       pass[@pass.pass_type] = {
         headerFields: @pass.header_fields,
@@ -123,13 +130,10 @@ module Passkit
       File.write(@manifest_url, manifest.to_json)
     end
 
-    CERTIFICATE = Rails.root.join(ENV["PASSKIT_PRIVATE_P12_CERTIFICATE"])
     INTERMEDIATE_CERTIFICATE = Rails.root.join(ENV["PASSKIT_APPLE_INTERMEDIATE_CERTIFICATE"])
-    CERTIFICATE_PASSWORD = ENV["PASSKIT_CERTIFICATE_KEY"]
 
     # :nocov:
-    def sign_manifest
-      p12_certificate = OpenSSL::PKCS12.new(File.read(CERTIFICATE), CERTIFICATE_PASSWORD)
+    def sign_manifest(p12_certificate)
       intermediate_certificate = OpenSSL::X509::Certificate.new(File.read(INTERMEDIATE_CERTIFICATE))
 
       flag = OpenSSL::PKCS7::DETACHED | OpenSSL::PKCS7::BINARY

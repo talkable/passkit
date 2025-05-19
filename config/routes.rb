@@ -14,9 +14,9 @@ Passkit::Engine.routes.draw do
     end
   end
 
-  namespace :dashboard do
-    resources :previews, only: [:index, :show], param: :class_name
-    resources :logs, only: [:index]
-    resources :passes, only: [:index]
-  end
+  # namespace :dashboard do
+  #   resources :previews, only: [:index, :show], param: :class_name
+  #   resources :logs, only: [:index]
+  #   resources :passes, only: [:index]
+  # end
 end

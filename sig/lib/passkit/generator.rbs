@@ -3,6 +3,6 @@ module Passkit
     TMP_FOLDER: String
 
     def initialize: (Passkit::Pass pass) -> void
-    def generate_and_sign: () -> String
+    def generate_and_sign: (?String) -> String
   end
 end
