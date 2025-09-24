@@ -35,7 +35,7 @@ module Passkit
           z.print File.read(file)
         end
       end
-      zip_path
+      zip_path.to_s
     end
 
   private
@@ -157,7 +157,7 @@ module Passkit
           z.print File.read(file)
         end
       end
-      zip_path
+      zip_path.to_s
     end
   end
 end
