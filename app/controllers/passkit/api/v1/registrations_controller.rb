@@ -5,7 +5,7 @@ module Passkit
       # This Class Implements the Apple PassKit API
       # @see Apple: https://developer.apple.com/library/archive/documentation/PassKit/Reference/PassKit_WebService/WebService.html
       # @see Android: https://walletpasses.io/developer/
-      class RegistrationsController < ActionController::API
+      class RegistrationsController < ApplicationController
         before_action :load_pass, only: %i[create destroy]
         before_action :load_device, only: %i[show destroy]
 
