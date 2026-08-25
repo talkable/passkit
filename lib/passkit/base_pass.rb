@@ -223,6 +223,25 @@ module Passkit
       false
     end
 
+    # Poster style dictionary to emit alongside pass_type, e.g. :posterGeneric (iOS 27+).
+    # Older iOS ignores the unknown key and renders pass_type instead, so a pass
+    # carrying both is readable everywhere.
+    def poster_pass_type
+    end
+
+    # Poster styles replace the secondary/auxiliary rows of the classic layouts
+    # with a single footer field.
+    def footer_fields
+      []
+    end
+
+    # Up to two buttons rendered on the face of the pass (iOS 27+).
+    # Returns an array of hashes representing Pass.FeaturedActions
+    # i.e {identifier: "redeem", type: "link", url: "https://example.com"}
+    def featured_actions
+      []
+    end
+
   private
 
     def folder_name

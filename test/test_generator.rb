@@ -1,0 +1,96 @@
+# frozen_string_literal: true
+
+require "test_helper"
+require "active_support/all"
+require "delegate"
+require "tmpdir"
+
+# Generator resolves Rails paths when it loads; the payload itself needs no app.
+ENV["PASSKIT_APPLE_INTERMEDIATE_CERTIFICATE"] ||= "AppleWWDRCA.cer"
+def Rails.root
+  @root ||= Pathname.new(Dir.mktmpdir)
+end
+
+class TestGenerator < Minitest::Test
+  # A pass that opts into the poster layout on top of the classic one.
+  class PosterCard < Passkit::ExampleStoreCard
+    def pass_type
+      :generic
+    end
+
+    def poster_pass_type
+      :posterGeneric
+    end
+
+    def footer_fields
+      [{key: "membershipType", value: "Family Pass"}]
+    end
+
+    def featured_actions
+      [{identifier: "redeem", type: "shop", url: "https://example.com/redeem"}]
+    end
+  end
+
+  # Stands in for Passkit::Pass, which only adds persisted columns on top of
+  # the pass instance.
+  class PassDouble < SimpleDelegator
+    def generator
+      nil
+    end
+
+    def authentication_token
+      "authentication-token"
+    end
+
+    def serial_number
+      "serial-number"
+    end
+
+    def sharing
+      nil
+    end
+
+    def web_service_url
+      "https://example.com/passkit/api"
+    end
+
+    def apple_team_identifier
+      "TEAMIDENTIFIER"
+    end
+
+    def [](key)
+      nil
+    end
+  end
+
+  def pass_json_for(pass_class)
+    generator = Passkit::Generator.new(PassDouble.new(pass_class.new))
+    generator.send(:pass_json, "pass.com.example.card")
+  end
+
+  def test_poster_dictionary_is_emitted_alongside_the_classic_one
+    json = pass_json_for(PosterCard)
+
+    assert_equal [{key: "membershipType", value: "Family Pass"}], json[:posterGeneric][:footerFields]
+    assert_equal json[:generic][:headerFields], json[:posterGeneric][:headerFields]
+    assert_equal json[:generic][:backFields], json[:posterGeneric][:backFields]
+  end
+
+  def test_poster_dictionary_carries_no_secondary_or_auxiliary_rows
+    assert_equal %i[headerFields footerFields backFields], pass_json_for(PosterCard)[:posterGeneric].keys
+  end
+
+  def test_featured_actions_are_emitted
+    json = pass_json_for(PosterCard)
+
+    assert_equal [{identifier: "redeem", type: "shop", url: "https://example.com/redeem"}], json[:featuredActions]
+  end
+
+  def test_passes_without_a_poster_style_are_unchanged
+    json = pass_json_for(Passkit::ExampleStoreCard)
+
+    assert json.key?(:storeCard)
+    refute json.key?(:posterGeneric)
+    refute json.key?(:featuredActions)
+  end
+end

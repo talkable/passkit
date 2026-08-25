@@ -64,6 +64,10 @@ module Passkit
     end
 
     def generate_json_pass(pass_type_identifier)
+      File.write(@temporary_path.join("pass.json"), pass_json(pass_type_identifier).to_json)
+    end
+
+    def pass_json(pass_type_identifier)
       pass = {
         formatVersion: @pass.format_version,
         teamIdentifier: @pass.apple_team_identifier,
@@ -105,6 +109,8 @@ module Passkit
       pass[:userInfo] = @pass.user_info if @pass.user_info
       pass[:sharing] = @pass.sharing if @pass.sharing && !@pass[:sharing_prohibited]
 
+      pass[:featuredActions] = @pass.featured_actions if @pass.featured_actions.any?
+
       pass[@pass.pass_type] = {
         headerFields: @pass.header_fields,
         primaryFields: @pass.primary_fields,
@@ -113,9 +119,21 @@ module Passkit
         backFields: @pass.back_fields
       }
 
-      pass[:boardingPass].merge(@pass.boarding_pass) if @pass.pass_type == :boardingPass && @pass.boarding_pass
+      # Devices that know the poster style render this dictionary; the rest ignore
+      # the unknown key and fall back to the one above.
+      if @pass.poster_pass_type
+        pass[@pass.poster_pass_type] = {
+          headerFields: @pass.header_fields,
+          footerFields: @pass.footer_fields,
+          backFields: @pass.back_fields
+        }
+      end
 
-      File.write(@temporary_path.join("pass.json"), pass.to_json)
+      if @pass.pass_type == :boardingPass && @pass.boarding_pass
+        pass[:boardingPass] = pass[:boardingPass].merge(@pass.boarding_pass)
+      end
+
+      pass
     end
 
     # rubocop:enable Metrics/AbcSize
