@@ -223,7 +223,9 @@ module Passkit
       false
     end
 
-    # Poster style dictionary to emit alongside pass_type, e.g. :posterGeneric (iOS 27+).
+    # Poster style dictionary to emit alongside pass_type. :posterGeneric (iOS 27+)
+    # is the only poster style Wallet accepts as a top-level key -- posterEventTicket
+    # is a preferredStyleSchemes entry instead, not a style dictionary.
     # Older iOS ignores the unknown key and renders pass_type instead, so a pass
     # carrying both is readable everywhere.
     def poster_pass_type

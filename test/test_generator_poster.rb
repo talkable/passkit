@@ -44,6 +44,28 @@ class TestGeneratorPoster < Minitest::Test
     end
   end
 
+  # Opts into the poster layout without saying what goes in its primary row.
+  class DefaultPosterCard < Passkit::ExampleStoreCard
+    def poster_pass_type
+      :posterGeneric
+    end
+
+    def primary_fields
+      [{key: "balance", value: "$25"}]
+    end
+  end
+
+  # boarding_pass carries the keys only this style has, e.g. transitType.
+  class BoardingCard < Passkit::ExampleStoreCard
+    def pass_type
+      :boardingPass
+    end
+
+    def boarding_pass
+      {transitType: "PKTransitTypeGeneric"}
+    end
+  end
+
   # Stands in for Passkit::Pass, which only adds persisted columns on top of
   # the pass instance.
   class PassDouble < SimpleDelegator
@@ -114,5 +136,19 @@ class TestGeneratorPoster < Minitest::Test
     assert json.key?(:storeCard)
     refute json.key?(:posterGeneric)
     refute json.key?(:featuredActions)
+  end
+
+  def test_poster_primary_fields_default_to_the_classic_ones
+    json = pass_json_for(DefaultPosterCard)
+
+    assert_equal [{key: "balance", value: "$25"}], json[:posterGeneric][:primaryFields]
+    assert_equal json[:storeCard][:primaryFields], json[:posterGeneric][:primaryFields]
+  end
+
+  def test_boarding_pass_keys_are_merged_into_the_style_dictionary
+    json = pass_json_for(BoardingCard)
+
+    assert_equal "PKTransitTypeGeneric", json[:boardingPass][:transitType]
+    assert_equal BoardingCard.new.header_fields, json[:boardingPass][:headerFields]
   end
 end

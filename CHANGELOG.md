@@ -1,3 +1,11 @@
+## [0.8.0]
+
+- Support the iOS 27 poster styles: `poster_pass_type`, `poster_primary_fields`,
+  `footer_fields` and `featured_actions`. A pass that sets `poster_pass_type` emits
+  both style dictionaries, so older devices keep rendering the classic layout.
+- Fix `boarding_pass` being dropped: its keys were merged into a discarded copy of
+  the `boardingPass` dictionary and never reached `pass.json`.
+
 ## [0.7.0]
 - [#25](https://github.com/coorasse/passkit/pull/25): Change the label default color to black.
 
