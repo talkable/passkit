@@ -235,9 +235,16 @@ module Passkit
       []
     end
 
+    # The row above the footer of a poster style. The classic primary fields sit
+    # above the barcode instead, so a pass carrying both layouts usually needs
+    # different content here.
+    def poster_primary_fields
+      primary_fields
+    end
+
     # Up to two buttons rendered on the face of the pass (iOS 27+).
     # Returns an array of hashes representing Pass.FeaturedActions
-    # i.e {identifier: "redeem", type: "link", url: "https://example.com"}
+    # i.e {identifier: "redeem", type: "shop", url: "https://example.com"}
     def featured_actions
       []
     end

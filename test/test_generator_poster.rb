@@ -6,12 +6,17 @@ require "delegate"
 require "tmpdir"
 
 # Generator resolves Rails paths when it loads; the payload itself needs no app.
+# Rake loads every test file into one process, so only stand in for Rails.root
+# when nothing else has booted an app -- otherwise this would repoint the
+# dummy app the controller tests rely on.
 ENV["PASSKIT_APPLE_INTERMEDIATE_CERTIFICATE"] ||= "AppleWWDRCA.cer"
-def Rails.root
-  @root ||= Pathname.new(Dir.mktmpdir)
+unless Rails.root
+  def Rails.root
+    @root ||= Pathname.new(Dir.mktmpdir)
+  end
 end
 
-class TestGenerator < Minitest::Test
+class TestGeneratorPoster < Minitest::Test
   # A pass that opts into the poster layout on top of the classic one.
   class PosterCard < Passkit::ExampleStoreCard
     def pass_type
@@ -20,6 +25,14 @@ class TestGenerator < Minitest::Test
 
     def poster_pass_type
       :posterGeneric
+    end
+
+    def primary_fields
+      [{key: "balance", value: "$25"}]
+    end
+
+    def poster_primary_fields
+      [{key: "memberName", label: "Member Name", value: "Juan Chavez"}]
     end
 
     def footer_fields
@@ -72,12 +85,21 @@ class TestGenerator < Minitest::Test
     json = pass_json_for(PosterCard)
 
     assert_equal [{key: "membershipType", value: "Family Pass"}], json[:posterGeneric][:footerFields]
+    assert_equal [{key: "memberName", label: "Member Name", value: "Juan Chavez"}], json[:posterGeneric][:primaryFields]
     assert_equal json[:generic][:headerFields], json[:posterGeneric][:headerFields]
     assert_equal json[:generic][:backFields], json[:posterGeneric][:backFields]
   end
 
   def test_poster_dictionary_carries_no_secondary_or_auxiliary_rows
-    assert_equal %i[headerFields footerFields backFields], pass_json_for(PosterCard)[:posterGeneric].keys
+    assert_equal %i[headerFields primaryFields footerFields backFields], pass_json_for(PosterCard)[:posterGeneric].keys
+  end
+
+  # The classic layout puts primary fields above the barcode, the poster below it.
+  def test_poster_primary_fields_are_independent_of_the_classic_ones
+    json = pass_json_for(PosterCard)
+
+    assert_equal [{key: "balance", value: "$25"}], json[:generic][:primaryFields]
+    refute_equal json[:generic][:primaryFields], json[:posterGeneric][:primaryFields]
   end
 
   def test_featured_actions_are_emitted

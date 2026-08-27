@@ -124,6 +124,7 @@ module Passkit
       if @pass.poster_pass_type
         pass[@pass.poster_pass_type] = {
           headerFields: @pass.header_fields,
+          primaryFields: @pass.poster_primary_fields,
           footerFields: @pass.footer_fields,
           backFields: @pass.back_fields
         }

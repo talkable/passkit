@@ -37,6 +37,7 @@ module Passkit
       :pass_type,
       :pass_type_identifier,
       :poster_pass_type,
+      :poster_primary_fields,
       :primary_fields,
       :relevant_date,
       :secondary_fields,
