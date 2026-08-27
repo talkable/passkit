@@ -66,6 +66,12 @@ class TestGeneratorPoster < Minitest::Test
     end
   end
 
+  # featured_actions has a [] default, but a subclass is free to return nil.
+  class NilActionsCard < Passkit::ExampleStoreCard
+    def featured_actions
+    end
+  end
+
   # Stands in for Passkit::Pass, which only adds persisted columns on top of
   # the pass instance.
   class PassDouble < SimpleDelegator
@@ -150,5 +156,9 @@ class TestGeneratorPoster < Minitest::Test
 
     assert_equal "PKTransitTypeGeneric", json[:boardingPass][:transitType]
     assert_equal BoardingCard.new.header_fields, json[:boardingPass][:headerFields]
+  end
+
+  def test_nil_featured_actions_emit_no_key
+    refute pass_json_for(NilActionsCard).key?(:featuredActions)
   end
 end

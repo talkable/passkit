@@ -109,7 +109,8 @@ module Passkit
       pass[:userInfo] = @pass.user_info if @pass.user_info
       pass[:sharing] = @pass.sharing if @pass.sharing && !@pass[:sharing_prohibited]
 
-      pass[:featuredActions] = @pass.featured_actions if @pass.featured_actions.any?
+      featured_actions = @pass.featured_actions
+      pass[:featuredActions] = featured_actions if featured_actions.present?
 
       pass[@pass.pass_type] = {
         headerFields: @pass.header_fields,
