@@ -10,9 +10,13 @@ class TestGenerator < Minitest::Test
     end
   end
 
-  # BasePass#barcodes is empty and #barcode returns the default QR code,
-  # so this exercises the legacy singular barcode fallback.
+  # barcodes is empty and #barcode is defined, so this exercises the legacy
+  # singular barcode fallback on its own value, not BasePass's default.
   class LegacyBarcodePass < Passkit::BasePass
+    def barcode
+      {messageEncoding: "iso-8859-1", format: "PKBarcodeFormatCode128",
+       message: "REAL-12345", altText: "REAL-12345"}
+    end
   end
 
   class NoBarcodePass < Passkit::BasePass
@@ -35,7 +39,10 @@ class TestGenerator < Minitest::Test
     json = generate_pass_json(LegacyBarcodePass)
 
     refute_includes json.keys, "barcodes"
-    assert_equal JSON.parse(LegacyBarcodePass.new.barcode.to_json), json["barcode"]
+    assert_equal "PKBarcodeFormatCode128", json["barcode"]["format"]
+    assert_equal "REAL-12345", json["barcode"]["message"]
+    assert_equal "REAL-12345", json["barcode"]["altText"]
+    assert_equal "iso-8859-1", json["barcode"]["messageEncoding"]
   end
 
   def test_omits_barcode_keys_when_pass_has_no_barcodes
