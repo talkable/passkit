@@ -90,7 +90,7 @@ module Passkit
       # the original barcode attribute
       barcodes = @pass.barcodes || []
       if barcodes.empty?
-        pass[:barcode] = @pass.barcode
+        pass[:barcode] = @pass.barcode if @pass.barcode
       else
         pass[:barcodes] = @pass.barcodes
       end
