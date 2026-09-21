@@ -1,7 +1,40 @@
+require "fileutils"
+
 module Passkit
   class BasePass
+    # The filename Wallet looks for in the bundle, per image slot. The names are
+    # not derivable from the keys -- Apple mixes camelCase basenames with an
+    # @2x/@3x scale suffix -- so swapping "_" for "@" yields primary@logo.png,
+    # a file Wallet ignores in silence: no error, and no logo on the pass.
+    # https://developer.apple.com/documentation/walletpasses/creating-a-pass-with-pass-designer
+    IMAGE_FILE_NAMES = {
+      icon: "icon.png", icon_2x: "icon@2x.png", icon_3x: "icon@3x.png",
+      logo: "logo.png", logo_2x: "logo@2x.png", logo_3x: "logo@3x.png",
+      # The logo slot of the poster styles (iOS 27+). posterGeneric renders
+      # primaryLogo and never logo, so a poster pass shipping logo.png alone has
+      # no logo at all. Max 126x30pt -- 252x60 at @2x, 378x90 at @3x.
+      primary_logo: "primaryLogo.png", primary_logo_2x: "primaryLogo@2x.png",
+      primary_logo_3x: "primaryLogo@3x.png",
+      strip: "strip.png", strip_2x: "strip@2x.png", strip_3x: "strip@3x.png",
+      # The poster styles' full-bleed image. Not background.png, which is the
+      # blurred backdrop of the classic event ticket.
+      artwork: "artwork.png", artwork_2x: "artwork@2x.png", artwork_3x: "artwork@3x.png"
+    }.freeze
+
     def initialize(generator = nil)
       @generator = generator
+    end
+
+    # Copies prepared images into the pass bundle under the names Wallet looks
+    # for. Keys are IMAGE_FILE_NAMES slots; an unknown one raises rather than
+    # writing a file Wallet would ignore without complaining.
+    #
+    #   install_images(icon: "/tmp/icon.png", primary_logo: "/tmp/brand.png")
+    def install_images(sources)
+      FileUtils.mkdir_p(pass_path)
+      sources.each do |slot, source|
+        FileUtils.cp(source, File.join(pass_path, IMAGE_FILE_NAMES.fetch(slot)))
+      end
     end
 
     def format_version

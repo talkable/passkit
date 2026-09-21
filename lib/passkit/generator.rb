@@ -45,7 +45,8 @@ module Passkit
     end
 
     def check_necessary_files
-      raise "icon.png is not present in #{@pass.pass_path}" unless File.exist?(File.join(@pass.pass_path, "icon.png"))
+      icon = BasePass::IMAGE_FILE_NAMES.fetch(:icon)
+      raise "#{icon} is not present in #{@pass.pass_path}" unless File.exist?(File.join(@pass.pass_path, icon))
     end
 
     def create_temporary_directory

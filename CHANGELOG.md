@@ -1,3 +1,10 @@
+## [0.9.0]
+
+- Name the pass bundle's image slots in `BasePass::IMAGE_FILE_NAMES`, and copy images
+  into the bundle through `BasePass#install_images`. Adds the `primary_logo` slot the
+  iOS 27 poster styles render (`primaryLogo.png`); `posterGeneric` never renders
+  `logo.png`, so a poster pass had no way to show one.
+
 ## [0.8.0]
 
 - Support the iOS 27 poster styles: `poster_pass_type`, `poster_primary_fields`,
